@@ -5,7 +5,12 @@ Used to copy Component objects from one GameObject to another in the Unity Edito
 
 ![image](https://github.com/jr-uk/SimpleComponentCopy/assets/10715164/69206d7b-384f-4bf5-8fbc-baa3bdbbf79b)
 
-Note: It does not copy field and property contents, just creates components of the same type.
+Note: By default it only creates components of the same type. Enable **Include serialized values** in the tool window if you also want the field/property data copied.
+
+### Recent Changes
+- Added per-component toggles so you can cherry-pick what gets copied.
+- Added the **Include serialized values** toggle to optionally bring over configured data.
+- Skips unsafe-to-clone components such as `Transform`, `MeshFilter`, and `MeshRenderer` automatically.
 
 ### Setup
 Open the package manager and click the plus sign and enter the URL below to add the project

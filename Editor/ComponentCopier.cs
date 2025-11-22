@@ -16,6 +16,7 @@ public class SimpleComponentCopy : EditorWindow
     private GameObject sourceGameObject;
     private Dictionary<Component, bool> componentToCopyDictionary = new Dictionary<Component, bool>();
     private List<Component> sourceComponents = new List<Component>();
+    private bool includeSerializedValues = true;
     private Type[] nonCopyableTypes = { typeof(Transform), typeof(MeshFilter), typeof(MeshRenderer) };
 
     [MenuItem("Tools/SimpleComponentCopy")]
@@ -29,8 +30,14 @@ public class SimpleComponentCopy : EditorWindow
     {
         DrawSourceGameObjectButton();
         DrawSourceGameObjectComponents(); // Ensure this is called here to draw toggles
+        DrawCopyParametersToggle();
         DrawCopyToSelectedGameObjectsButton();
 
+    }
+
+    private void DrawCopyParametersToggle()
+    {
+        includeSerializedValues = EditorGUILayout.ToggleLeft("Include serialized values", includeSerializedValues);
     }
 
     private void DrawSourceGameObjectComponents()
@@ -103,7 +110,7 @@ public class SimpleComponentCopy : EditorWindow
             foreach (GameObject obj in CopyUtils.GetSelectedObjects())
             {
                 Debug.Log("Copying: " + item.Key.ToString() + " To Object: " + obj.gameObject.name);
-                CopyUtils.Copy(item.Key, obj);
+                CopyUtils.Copy(item.Key, obj, includeSerializedValues);
             }
         }
     }
@@ -117,11 +124,22 @@ public class SimpleComponentCopy : EditorWindow
 
 public static class CopyUtils
 {
-    public static void Copy(Component comp, GameObject obj)
+    public static void Copy(Component comp, GameObject obj, bool copyParameters)
     {
-        // Simply add a new component of the same type to the target GameObject.
-        // This does not attempt to copy field or property values from the source.
-        obj.AddComponent(comp.GetType());
+        Component clonedComponent = obj.AddComponent(comp.GetType());
+
+        if (clonedComponent == null)
+        {
+            Debug.LogWarning($"Failed to add component {comp.GetType().Name} to {obj.name}");
+            return;
+        }
+
+        if (copyParameters)
+        {
+            // EditorUtility.CopySerialized covers serialized fields/properties so the new component
+            // mirrors the configured parameters on the source component.
+            EditorUtility.CopySerialized(comp, clonedComponent);
+        }
     }
 
     public static List<GameObject> GetSelectedObjects()
